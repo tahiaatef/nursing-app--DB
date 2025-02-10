@@ -25,7 +25,7 @@ exports.registerUser = async (req, res) => {
     // التحقق من وجود مستخدم بنفس الإيميل
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already exists' });
+      return res.status(409).json({ error: 'Email already exists' });
     }
     
     // تشفير كلمة المرور
@@ -64,12 +64,12 @@ exports.loginUser = async (req, res) => {
     // البحث عن المستخدم حسب الإيميل
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
     
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
     
     // إنشاء التوكن
@@ -82,7 +82,7 @@ exports.loginUser = async (req, res) => {
     
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
     
-    res.status(200).json({ message: 'Login successful', token, user });
+    res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -125,8 +125,7 @@ exports.getAllUsers = async (req, res) => {
 // تحديث بيانات مستخدم معين
 exports.updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const updatedUser = await User.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, req.body, { new: true });
     if (!updatedUser) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -139,8 +138,7 @@ exports.updateUser = async (req, res) => {
 // حذف مستخدم معين
 exports.deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const deletedUser = await User.findByIdAndDelete(id);
+    const deletedUser = await User.findByIdAndDelete(req.user.id);
     if (!deletedUser) {
       return res.status(404).json({ error: 'User not found' });
     }

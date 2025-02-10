@@ -4,6 +4,8 @@ const cors = require('cors');
 const connectDB = require("./database");  
 const userRoutes = require("./routes/userRoutes");
 const nurseRoutes = require("./routes/nurseRoutes");
+const categoryRoutes = require('./routes/categoryRoutes');
+const subCategoryRoutes = require('./routes/subCategoryRoutes');
 const requestRoutes = require('./routes/requestsRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const acceptRequestRoutes = require('./routes/acceptRequestRoutes');
@@ -48,8 +50,8 @@ app.use('/api/reviews', reviewRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/nurses", nurseRoutes);
 app.use('/api/requests', requestRoutes);
-app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/subcategories', require('./routes/subCategoryRoutes'));
+app.use('/api/categories', categoryRoutes);
+app.use('/api/subcategories', subCategoryRoutes);
 app.use('/api/nursedrafts', nurseDraftRoutes);
 
 
