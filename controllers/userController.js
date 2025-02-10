@@ -1,20 +1,6 @@
-// const registerUser = async (req, res) => {
-//   try {
-//       const { name, email, password } = req.body;
-
-//       if (!name || !email || !password) {
-//           return res.status(400).json({ message: "Please fill all fields" });
-//       }
-
-//       res.status(201).json({ message: "User registered successfully" });
-//   } catch (error) {
-//       res.status(500).json({ message: "Server error", error: error.message });
-//   }
-// };
-
-// module.exports = { registerUser };
 
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 // تسجيل مستخدم جديد (Register)
@@ -80,19 +66,52 @@ exports.loginUser = async (req, res) => {
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
-    
+    console.log('Stored hashed password:', user.password); // سجل كلمة المرور المشفرة
+    console.log('Entered password:', password); 
     // مقارنة كلمة المرور
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
     
-    // هنا ممكن تضيفي إصدار توكن JWT، لكن لأبسط نموذج هنرجع بيانات المستخدم فقط
-    res.status(200).json({ message: 'Login successful', user });
+    // إنشاء التوكن
+    // تأكدي من ضبط متغير البيئة JWT_SECRET في ملف .env
+    const payload = {
+      id: user._id,
+      email: user.email,
+      is_nurse: user.is_nurse
+    };
+    
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    
+    res.status(200).json({ message: 'Login successful', token, user });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+// exports.loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+    
+//     // البحث عن المستخدم حسب الإيميل
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(400).json({ error: 'Invalid email or password' });
+//     }
+    
+//     // مقارنة كلمة المرور
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res.status(400).json({ error: 'Invalid email or password' });
+//     }
+    
+//     // هنا ممكن تضيفي إصدار توكن JWT، لكن لأبسط نموذج هنرجع بيانات المستخدم فقط
+//     res.status(200).json({ message: 'Login successful', user });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
 // جلب كل المستخدمين
 exports.getAllUsers = async (req, res) => {
@@ -128,6 +147,16 @@ exports.deleteUser = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

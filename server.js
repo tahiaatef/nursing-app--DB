@@ -1,5 +1,6 @@
 const express = require("express");
 require("dotenv").config();
+const cors = require('cors');
 const connectDB = require("./database");  
 const userRoutes = require("./routes/userRoutes");
 const nurseRoutes = require("./routes/nurseRoutes");
@@ -10,6 +11,7 @@ const nurseDraftRoutes = require('./routes/nurseDraftRoutes');
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 
 connectDB();
