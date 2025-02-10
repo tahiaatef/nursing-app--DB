@@ -29,7 +29,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:5000', // تأكدي إن المنفذ صحيح
+        url: 'http://localhost:5000',  
       },
     ],
   },
