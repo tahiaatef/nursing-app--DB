@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 const RequestSchema = new mongoose.Schema({
-    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' , required: true},
     images: [String],
     title: String,
     description: String,
@@ -17,4 +17,4 @@ const RequestSchema = new mongoose.Schema({
 
 const Request = mongoose.model('Request', RequestSchema);
 
-module.exports = Request;  // ✅ تصدير Request
+module.exports = Request;  

@@ -23,9 +23,14 @@ exports.registerUser = async (req, res) => {
     } = req.body;
     
     // التحقق من وجود مستخدم بنفس الإيميل
-    const existingUser = await User.findOne({ email });
+    let existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ error: 'Email already exists' });
+    }
+
+    existingUser = await User.findOne({ user_name });
+    if (existingUser) {
+      return res.status(409).json({ error: 'Username already exists' });
     }
     
     // تشفير كلمة المرور
