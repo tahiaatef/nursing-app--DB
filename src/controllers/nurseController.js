@@ -27,3 +27,12 @@ exports.deleteNurse = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 };
+
+exports.getAllNurses = async (req, res) => {
+  try {
+      const nurses = await Nurse.find();
+      res.json(nurses);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};

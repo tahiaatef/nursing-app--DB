@@ -1,144 +1,60 @@
-const express = require('express');
+const express = require("express");
+const Review = require("../models/Review");
+const Request = require("../models/requestModel");
+
 const router = express.Router();
-const { addReview, getReviewsByRequest, getAllReviews, deleteReview } = require('../controllers/reviewController');
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     Review:
- *       type: object
- *       required:
- *         - nurse_id
- *         - patient_id
- *         - request_id
- *         - rating
- *         - comment
- *       properties:
- *         _id:
- *           type: string
- *           description: The auto-generated id of the review
- *         nurse_id:
- *           type: string
- *           description: The id of the nurse (or user) giving the review
- *         patient_id:
- *           type: string
- *           description: The id of the patient associated with the review
- *         request_id:
- *           type: string
- *           description: The id of the request related to the review
- *         rating:
- *           type: number
- *           description: The rating given (e.g., 1 to 5)
- *         comment:
- *           type: string
- *           description: The review comment
- *       example:
- *         nurse_id: "65f1a2b3-c4d5-e6f7-8901-23456789abcd"
- *         patient_id: "65f1a2b3-c4d5-e6f7-8901-23456789abce"
- *         request_id: "65f1a2b3-c4d5-e6f7-8901-23456789abcf"
- *         rating: 5
- *         comment: "Excellent service!"
- */
+router.post("/", async (req, res) => {
+  try {
+    const { requestId,  nurseId, rating, comment } = req.body;
 
-/**
- * @swagger
- * tags:
- *   name: Reviews
- *   description: API for managing reviews
- */
+    // التحقق من أن الطلب موجود وأنه مكتمل
+    const request = await Request.findById(requestId);
+    console.log("Request Found:", request);
+    if (!request) {
+      return res.status(400).json({ message: "Request not found" });
+    }
+    
+    // const nurseExists = await nurse.findById(nurseId);
+    // if (!nurseExists) {
+    //   return res.status(400).json({ message: "Nurse not found" });
+    // }
 
-/**
- * @swagger
- * /api/reviews:
- *   post:
- *     summary: Add a new review
- *     tags: [Reviews]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Review'
- *     responses:
- *       201:
- *         description: Review added successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Review'
- *       400:
- *         description: Bad request
- */
-router.post('/', addReview);
+    const newReview = new Review({ requestId, nurseId, rating, comment });
+    await newReview.save();
 
-/**
- * @swagger
- * /api/reviews/{requestId}:
- *   get:
- *     summary: Get reviews by request ID
- *     tags: [Reviews]
- *     parameters:
- *       - in: path
- *         name: requestId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the request to get reviews for
- *     responses:
- *       200:
- *         description: A list of reviews for the given request ID
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Review'
- *       404:
- *         description: Reviews not found
- */
-router.get('/:requestId', getReviewsByRequest);
+    res.status(201).json({ message: "Review added successfully", review: newReview });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding review", error });
+  }
+});
 
-/**
- * @swagger
- * /api/reviews:
- *   get:
- *     summary: Get all reviews
- *     tags: [Reviews]
- *     responses:
- *       200:
- *         description: A list of all reviews
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Review'
- */
-router.get('/', getAllReviews);
 
-/**
- * @swagger
- * /api/reviews/{reviewId}:
- *   delete:
- *     summary: Delete a review by ID
- *     tags: [Reviews]
- *     parameters:
- *       - in: path
- *         name: reviewId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the review to delete
- *     responses:
- *       200:
- *         description: Review deleted successfully
- *       404:
- *         description: Review not found
- */
-router.delete('/:reviewId', deleteReview);
+router.get("/nurse/:nurseId", async (req, res) => {
+  try {
+    const { nurseId } = req.params;
+    
+    console.log("Fetching reviews for nurse:", nurseId); // طباعة الـ nurseId للتحقق
+    
+    const reviews = await Review.find({ nurseId })
+    
+    console.log("Fetched reviews:", reviews); // طباعة التقييمات المسترجعة
+    
+    if (!reviews || reviews.length === 0) {
+      return res.json({ message: "No reviews found for this nurse" });
+    }
+  //   if (!reviews.length) {
+  //     return res.json({ message: "No reviews found for this nurse", reviews: [] });
+  // }
+
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error); // طباعة الخطأ في السيرفر
+    res.status(500).json({ message: "Error fetching reviews", error: error.message });
+  }
+});
+
+
 
 module.exports = router;
-
-
 

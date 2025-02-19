@@ -112,7 +112,8 @@ router.post('/', requestController.createRequest);
  *               items:
  *                 $ref: '#/components/schemas/Request'
  */
-router.get('/', requestController.getAllRequests);
+const verifyToken = require("../middlewares/auth");
+router.get('/', verifyToken, requestController.getAllRequests);
 
 /**
  * @swagger
@@ -190,5 +191,8 @@ router.put('/:id', requestController.updateRequest);
  *         description: Request not found
  */
 router.delete('/:id', requestController.deleteRequest);
+
+router.get('/user/:userId', requestController.getRequestsByUserId); 
+router.patch("/:id/status", requestController.updateRequestStatus);
 
 module.exports = router;

@@ -62,6 +62,36 @@ exports.registerUser = async (req, res) => {
 };
 
 // تسجيل الدخول (Login)
+// exports.loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+    
+//     // البحث عن المستخدم حسب الإيميل
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(401).json({ error: 'Invalid email or password' });
+//     }
+    
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res.status(401).json({ error: 'Invalid email or password' });
+//     }
+    
+//     // إنشاء التوكن
+//     // تأكدي من ضبط متغير البيئة JWT_SECRET في ملف .env
+//     const payload = {
+//       id: user._id,
+//       email: user.email,
+//       is_nurse: user.is_nurse
+//     };
+    
+//     const token = jwt.sign({ id: user._id, isNurse: user.is_nurse },payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+    
+//     res.status(200).json({ message: 'Login successful', token });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -78,15 +108,14 @@ exports.loginUser = async (req, res) => {
     }
     
     // إنشاء التوكن
-    // تأكدي من ضبط متغير البيئة JWT_SECRET في ملف .env
     const payload = {
       id: user._id,
       email: user.email,
       is_nurse: user.is_nurse
     };
     
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-    
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+
     res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -1,141 +1,138 @@
+const AcceptRequest = require('../models/AcceptRequest');
 const Request = require('../models/requestModel');
 const mongoose = require('mongoose');
-// exports.createRequest = async (req, res) => {
-//   try {
-//     console.log("Received Data:", req.body); // ✅ فحص البيانات المستلمة
-
-//     if (!req.body.user_id) {
-//       return res.status(400).json({ error: "user_id is required" });
-//     }
-
-//     if (!mongoose.Types.ObjectId.isValid(req.body.user_id)) {
-//       return res.status(400).json({ error: "Invalid user_id format" });
-//     }
-
-//     req.body.user_id = new mongoose.Types.ObjectId(req.body.user_id);
-//     const request = new Request(req.body);
-//     await request.save();
-//     res.status(201).json(request);
-//   } catch (error) {
-//     res.status(400).json({ error: error.message });
-//   }
-// };
 
 
-// جلب كل الطلبات
-
-// exports.createRequest = async (req, res) => {
-//   try {
-//     console.log("Received Data:", req.body); 
-
-//     if (!req.body || Object.keys(req.body).length === 0) {
-//       return res.status(400).json({ error: "Request body is empty" });
-//     }
-
-//     if (!req.body.user_id) {
-//       return res.status(400).json({ error: "user_id is required" });
-//     }
-
-//     if (!mongoose.Types.ObjectId.isValid(req.body.user_id)) {
-//       return res.status(400).json({ error: "Invalid user_id format" });
-//     }
-
-//     const newRequest = new Request({
-//       user_id: new mongoose.Types.ObjectId(req.body.user_id),
-//       description: req.body.description,
-//       images: req.body.images || [],
-//       reviews: [],
-//       interested: [],
-//       offers: []
-//     });
-
-//     const savedRequest = await newRequest.save();
-//     res.status(201).json(savedRequest);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
 
 exports.createRequest = async (req, res) => {
   try {
-    console.log("Received Data:", req.body);
+      // console.log("Received Data:", req.body); // التحقق من البيانات القادمة
 
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ error: "Request body is empty" });
-    }
+      const { user_id, title, description, price, images } = req.body;
 
-    if (!req.body.user_id) {
-      return res.status(400).json({ error: "user_id is required" });
-    }
+      if (!user_id) {
+          return res.status(400).json({ message: "User ID is required" });
+      }
 
-    if (!mongoose.Types.ObjectId.isValid(req.body.user_id)) {
-      return res.status(400).json({ error: "Invalid user_id format" });
-    }
+      const newRequest = new Request({
+          user_id,
+          title,
+          description,
+          price,
+          images,
+          status: "open"
+      });
 
-    // ✅ تأكدي من أن `user_id` يتم تخزينه بشكل صحيح
-    const newRequest = new Request({
-      user_id: req.body.user_id, // ✅ بدون تحويله إلى ObjectId يدويًا
-      description: req.body.description,
-      images: req.body.images || [],
-      reviews: [],
-      interested: [],
-      offers: []
-    });
+      // console.log("New Request Before Save:", newRequest);
 
-    console.log("New Request Before Save:", newRequest); // ✅ طباعة البيانات قبل الحفظ
-
-    const savedRequest = await newRequest.save();
-    console.log("Saved Request:", savedRequest); // ✅ طباعة البيانات بعد الحفظ
-    res.status(201).json(savedRequest);
+      const savedRequest = await newRequest.save();
+      res.status(201).json(savedRequest);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
   }
 };
 
-// // exports.getAllRequests = async (req, res) => {
-// //     try {
-// //         const requests = await Request.find().populate('user_id').populate('reviews');
-// //         res.status(200).json(requests);
-// //     } catch (error) {
-// //         res.status(500).json({ error: error.message });
-// //     }
-// // };
 
-// // جلب طلب معين بالـ ID
-// exports.getAllRequests = async (req, res) => {
+// exports.createRequest = async (req, res) => {
 //   try {
-//       const requests = await Request.find()
-//           .populate({ path: 'user_id', model: 'User' }) // تأكدي أن الاسم مطابق للـ model
-//           .populate('reviews')
-//           .exec();
-      
-//       res.status(200).json(requests);
+//       console.log("Received Data:", req.body);
+
+//       const { user_id, title, description, price, images, status } = req.body;
+
+//       if (!title || !price) {
+//           return res.status(400).json({ message: "title and price are required" });
+//       }
+
+//       const newRequest = new Request({
+//           user_id,
+//           title,       // ✅ تأكدي أن title يتم تمريره هنا
+//           description,
+//           price,       // ✅ تأكدي أن price يتم تمريره هنا
+//           images,
+//           status
+//       });
+
+//       console.log("New Request Before Save:", newRequest);  // ✅ لمراقبة البيانات
+
+//       await newRequest.save();
+
+//       res.status(201).json({ message: "Request created successfully", newRequest });
 //   } catch (error) {
-//       res.status(500).json({ error: error.message });
+//       console.error("Error creating request:", error);
+//       res.status(500).json({ message: "Server error", error });
 //   }
 // };
 
 
 exports.getAllRequests = async (req, res) => {
   try {
-      const requests = await Request.find(); // 
-      console.log(requests); // شوفي البيانات اللي بترجع
-      res.status(200).json(requests);
+      const requests = await Request.find(); 
+      const listRequests = [];
+
+      for (let request of requests) {
+        const acceptedRequest = await AcceptRequest.findOne({ request_id: request._id, nurse_id: req.user.id }); 
+      
+        // console.log(acceptedRequest);
+        listRequests.push({
+          ...request.toJSON(),
+          accepted: !!acceptedRequest,
+          approved: acceptedRequest?.status === 'approved',
+        });
+      }
+
+      res.status(200).json(listRequests); // أرسل listRequests بدلاً من requests
   } catch (error) {
       console.error(error);
       res.status(500).json({ error: error.message });
   }
 };
 
+
+// exports.getRequestById = async (req, res) => {
+//     try {
+//         const request = await Request.findById(req.params.id).populate('user_id').populate('reviews');
+//         if (!request) return res.status(404).json({ message: 'Request not found' });
+//         res.status(200).json(request);
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// };
+
+
 exports.getRequestById = async (req, res) => {
     try {
-        const request = await Request.findById(req.params.id).populate('user_id').populate('reviews');
-        if (!request) return res.status(404).json({ message: 'Request not found' });
+        // تحقق مما إذا كان الـ ID صالحًا
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: "Invalid Request ID" });
+        }
+        // console.log("🔍 Request Model:", Request);
+        const request = await Request.findById(req.params.id)
+            .populate("user_id");
+            
+
+        if (!request) return res.status(404).json({ message: "Request not found" });
+
         res.status(200).json(request);
     } catch (error) {
+        console.error("❌ Error fetching request:", error);
         res.status(500).json({ error: error.message });
     }
 };
+
+// /////////////////////////////////////////////////////////////////
+exports.getRequestsByUserId = async (req, res) => {
+
+
+  try {
+      const requests = await Request.find({ user_id: req.params.userId }).populate('user_id'); 
+      
+
+      res.status(200).json(requests); 
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
 
 // تحديث طلب معين
 exports.updateRequest = async (req, res) => {
@@ -157,4 +154,29 @@ exports.deleteRequest = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+};
+
+
+
+exports.updateRequestStatus = async (req, res) => {
+  try {
+      const { status } = req.body;
+      const validStatuses = ["open", "in_progress", "closed"];
+
+      if (!validStatuses.includes(status)) {
+          return res.status(400).json({ message: "Invalid status value" });
+      }
+
+      const request = await Request.findByIdAndUpdate(
+          req.params.id,
+          { status, updatedAt: Date.now() },
+          { new: true }
+      );
+
+      if (!request) return res.status(404).json({ message: "Request not found" });
+
+      res.status(200).json({ message: "Status updated successfully", request });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
 };

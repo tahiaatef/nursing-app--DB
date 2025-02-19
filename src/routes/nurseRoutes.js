@@ -70,7 +70,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { createNurse, updateNurse, deleteNurse } = require('../controllers/nurseController');
+const { createNurse, updateNurse, deleteNurse,getAllNurses } = require('../controllers/nurseController');
 
 /**
  * @swagger
@@ -147,5 +147,6 @@ router.put('/:id', updateNurse);
  *         description: Nurse record not found
  */
 router.delete('/:id', deleteNurse);
-
+router.get('/nurses', getAllNurses);
 module.exports = router;
+

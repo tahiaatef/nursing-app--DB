@@ -1,23 +1,32 @@
-const jwt = require('jsonwebtoken');
+
+const jwt = require("jsonwebtoken");
 
 module.exports = function (req, res, next) {
-  // الحصول على التوكن من الـ Header
   const authHeader = req.headers.authorization;
+  console.log("Received Authorization Header:", authHeader); // ✅ تحقق من وصول التوكن
+
   if (!authHeader) {
-    return res.status(401).json({ error: 'No token, authorization denied' });
+    return res.status(401).json({ error: "No token, authorization denied" });
   }
-  
-  // نتوقع أن يكون التوكن بالشكل التالي: "Bearer <token>"
-  const token = authHeader.split(' ')[1];
+
+  const token = authHeader.split(" ")[1];
   if (!token) {
-    return res.status(401).json({ error: 'No token, authorization denied' });
+    return res.status(401).json({ error: "No token, authorization denied" });
   }
-  
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // يمكننا استخدام هذه البيانات في باقي الـ Endpoints
+    console.log(decoded);
+    req.user = decoded;
+    console.log("User making request:", req.user); // ✅ تحقق من البيانات بعد فك التوكن
+
+    // if (!req.user.is_nurse) {
+    //   return res.status(401).json({ error: "Unauthorized: Nurse ID is missing" });
+    // }
+
     next();
   } catch (err) {
-    res.status(401).json({ error: 'Token is not valid' });
+    res.status(401).json({ error: "Token is not valid" });
   }
 };
+

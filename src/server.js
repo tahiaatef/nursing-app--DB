@@ -4,8 +4,6 @@ const cors = require('cors');
 const connectDB = require("./database");  
 const userRoutes = require("./routes/userRoutes");
 const nurseRoutes = require("./routes/nurseRoutes");
-const categoryRoutes = require('./routes/categoryRoutes');
-const subCategoryRoutes = require('./routes/subCategoryRoutes');
 const requestRoutes = require('./routes/requestsRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const acceptRequestRoutes = require('./routes/acceptRequestRoutes');
@@ -18,6 +16,14 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const app = express();
 
 app.use(express.json());
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    console.error('Invalid JSON:', err.message);
+    return res.status(400).json({ error: 'Invalid JSON input' });
+  }
+  next();
+});
+
 app.use(cors());
 
 
@@ -50,8 +56,6 @@ app.use('/api/reviews', reviewRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/nurses", nurseRoutes);
 app.use('/api/requests', requestRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/subcategories', subCategoryRoutes);
 app.use('/api/nursedrafts', nurseDraftRoutes);
 
 
