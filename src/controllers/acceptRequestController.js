@@ -3,36 +3,6 @@ const AcceptRequest = require('../models/AcceptRequest');
 const Request = require('../models/requestModel');
 const User = require('../models/User');
 
-// هنعمل طلب من الممرض
-// const createAcceptRequest = async (req, res) => {
-//   try {
-//     const { request_id, price, message } = req.body;
-//     console.log("Price:", price);
-//     console.log("Message:", message);
-//     if (!req.user || !req.user.id) {
-//       return res.status(401).json({ error: "Unauthorized: Nurse ID is missing" });
-//     }
-//     const nurse_id = req.user.id;
-
-//     const existingRequest = await Request.findById(request_id);
-//     if (!existingRequest) {
-//       return res.status(404).json({ error: "Request not found" });
-//     }
-
-//     const existingAcceptRequest = await AcceptRequest.findOne({ nurse_id, request_id });
-//     if (existingAcceptRequest) {
-//       return res.status(400).json({ error: "You have already accepted this request" });
-//     }
-
-//     const newAcceptRequest = new AcceptRequest({ nurse_id, request_id, price, message });
-//     await newAcceptRequest.save();
-
-//     res.status(201).json(newAcceptRequest);
-//   } catch (error) {
-//     console.error("Error in createAcceptRequest:", error);
-//     res.status(500).json({ error: error.message || "Internal server error" });
-//   }
-// };
 const createAcceptRequest = async (req, res) => {
   try {
     const { request_id, price, message } = req.body;
@@ -83,8 +53,6 @@ const createAcceptRequest = async (req, res) => {
 };
 
 
-// هنجيب الطلبات اللي تم قبولها من الممرضين
-
 const getAcceptRequests = async (req, res) => {
   try {
     const acceptedRequests = await AcceptRequest.find({
@@ -100,18 +68,6 @@ const getAcceptRequests = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -155,25 +111,66 @@ const deleteAcceptRequest = async (req, res) => {
   }
 };
 
+// const acceptRequest = async (req, res) => {
+//   try {
+//     const { id } = req.params; // جلب الـ ID من الطلب
+//     const updatedRequest = await AcceptRequest.findByIdAndUpdate(
+//       id,
+//       { status: "approved" },
+//       { new: true } // حتى يرجع لنا الطلب بعد التعديل
+//     );
+
+//     if (!updatedRequest) {
+//       return res.status(404).json({ message: "Request not found" });
+//     }
+
+//     res.status(200).json(updatedRequest);
+//   } catch (error) {
+//     console.error("Error in acceptRequest:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+
+
 const acceptRequest = async (req, res) => {
   try {
     const { id } = req.params; // جلب الـ ID من الطلب
+    const { price, message } = req.body; // جلب البيانات من الطلب
+
+    console.log("📩 البيانات المستلمة:", { price, message });
+
     const updatedRequest = await AcceptRequest.findByIdAndUpdate(
       id,
-      { status: "approved" },
-      { new: true } // حتى يرجع لنا الطلب بعد التعديل
+      { 
+        status: "approved",
+        price: price, 
+        message: message
+      },
+      { new: true, runValidators: true } // حتى يرجع لنا الطلب بعد التعديل + تشغيل الفاليديشن
     );
 
     if (!updatedRequest) {
       return res.status(404).json({ message: "Request not found" });
     }
 
+    console.log("✅ تحديث ناجح:", updatedRequest);
     res.status(200).json(updatedRequest);
   } catch (error) {
-    console.error("Error in acceptRequest:", error);
+    console.error("❌ خطأ أثناء التحديث:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+
+
+
+
+
+
+
 const getOffersByNurseId = async (req, res) => {
   try {
     const offers = await AcceptRequest.find({ nurse_id: req.params.nurseId })
